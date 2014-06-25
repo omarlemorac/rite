@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Control de Temperatura</title>
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery-ui.min.js"></script>
+  <script src="jquery/iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8" />
+  <style type="text/css">
+    body {
+      padding: 10px; }
+    th {
+      text-align: right;
+      padding: 4px;
+      padding-right: 15px;
+      vertical-align: top; }
+    .css_sized_container .iPhoneCheckContainer {
+      width: 250px; height: 100px;}
+  </style>
+
+  <script type="text/javascript" charset="utf-8">
+    $(window).load(function() {
+      $('.modoAuto :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Horario', uncheckedLabel: 'Temperatura' });
+      $('.operacion :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Automático', uncheckedLabel: 'Manual' });
+      $('.aspersor :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Encendido', uncheckedLabel: 'Apagado' });
+      $('.goteo :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Encendido', uncheckedLabel: 'Apagado' });
+      var onchange_operacion = ($('.operacion :checkbox')).iphoneStyle({
+        onChange: function(elem, value) {
+          alert('Cisterna');
+        }
+      });
+	  
+      setInterval(function(){
+      	$("#temp").load("/cur_temp");	
+      }, 10000);
+      
+      
+      setInterval(function() {
+        onchange_checkbox.prop('checked', !onchange_checkbox.is(':checked')).iphoneStyle("refresh");
+        return
+      }, 2500);
+    });
+  </script>
+
+</head>
+<body>
+	<!--  {{ params }} -- -->
+	<div id="header">
+		<div class="col w5 last right bottomlast">
+			<p class="last">
+				Temperatura actual:&nbsp;<span class="strong" id="temp">actualizando ...</span>° C
+			</p>
+		</div>
+		<div class="clear"></div>
+		<!-- <div>{{params}}</div>  -->
+	</div>
+
+	<div id="wrapper">
+			<div id="minwidth">
+				<div id="holder">
+					<div id="menu">
+						<div id="left"></div>
+						<div id="right"></div>
+						<ul>
+							<li>
+								<a href="config.html" class="selected"><span>Configuración</span></a>
+							</li>
+							<li>
+								<a href="prog"><span>Programación</span></a>
+							</li>
+							<li>
+								<a href="logs.html"><span>Registro</span></a>
+							</li>
+						</ul>
+						<div class="clear"></div>
+					</div>
+					<div id="submenu">
+						
+						<div class="title">
+							Configuración
+						</div>
+						<div class="modules_right">
+						</div>
+					</div>
+					<div id="desc">
+						<div class="body">
+							<div id="messages"></div>
+							<div class="clear"></div>
+							<div id="html" class="help">
+							<form id="configForm" method="get" action="saveconfig">
+							<table>
+                                                                    <tr class="operacion">
+                                                                      <td ><label for="operacion">Operación</label></td>
+                                                                      <td style='vertical-align: middle !important;'>
+                                                                        <input type="checkbox" {% if params.operacion == 'auto' %} checked="true" {% endif %} id="operacion" name="operacion"/>
+                                                                      </td>
+                                                                    </tr>
+                                                                    <tr class="modoAuto">
+                                                                      <td ><label for="modoAuto">Programación</label></td>
+                                                                      <td style='vertical-align: middle !important;'>
+                                                                        <input type="checkbox" {% if params.opAuto.modo == 'horario' %} checked="true" {% endif %} id="modoAuto" name="modoAuto"/>
+                                                                      </td>
+                                                                    </tr>
+                                                                    <tr class="aspersor">
+                                                                      <td ><label for="on_off">Aspersi&oacute;n</label></td>
+                                                                      <td style='vertical-align: middle !important;'>
+                                                                        <input type="checkbox" {% if params.opManual.dispositivos.aspersor == 'on' %} checked="true" {% endif %} id="on_off" name="aspersor"/>
+                                                                      </td>
+                                                                    </tr>
+                                                                    <tr class="goteo">
+                                                                      <td ><label for="on_off">Goteo</label></td>
+                                                                      <td style='vertical-align: middle !important;'>
+                                                                        <input type="checkbox" {% if params.opManual.dispositivos.goteo == 'on' %} checked="true" {% endif %} id="on_off" name="goteo"/>
+                                                                      </td>
+                                                                    </tr>
+                                                                  </table>
+                                                                  </form>
+							</div>
+							<div class="clear"></div>
+						</div>
+						<div class="clear"></div>
+						<div id="body_footer">
+							<div id="bottom_left"><div id="bottom_right"></div></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+</body>
+</html>

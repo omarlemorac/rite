@@ -1,0 +1,23 @@
+<config>
+    <operacion>manual</operacion>
+    <operacionManual>
+        <dispositivos>
+            <cisterna>on</cisterna>
+            <aspersor>off</aspersor>
+            <goteo>off</goteo>
+        </dispositivos>
+    </operacionManual>
+    <operacionAutomatica>
+    	<modo>temperatura</modo>
+    	<temperatura>
+    		<riego>
+    			<aspersion intervalo="1" maxima="6" minima="1" />
+	    		<goteo intervalo="2" maxima="23" minima="22" />
+    		</riego>
+    	</temperatura>
+    	<horario>
+    	
+    	<programacion id="9d678ac1-772f-1ce0-cd4d-71aedd72beb2"><horaInicio>05:03PM</horaInicio><horaFin>05:04PM</horaFin><dia>2</dia><riego>0</riego></programacion></horario>
+        
+    </operacionAutomatica>
+</config>

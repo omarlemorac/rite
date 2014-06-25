@@ -1,0 +1,372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Control de Temperatura</title>
+  <!-- 
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js"></script>
+   -->
+		<!--<script src="jquery/jquery.js" type="text/javascript" charset="utf-8"></script>-->
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery-ui.min.js"></script>
+  <script src="jquery/jquery.timeentry.js" type="text/javascript" charset="utf-8"></script>
+  <script src="jquery/jquery.numeric.js" type="text/javascript" charset="utf-8"></script>
+  <script src="jquery/global.js" type="text/javascript" charset="utf-8"></script>
+  <script src="jquery/modal.js" type="text/javascript" charset="utf-8"></script>
+  <script src="jquery/iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8" />
+  <style type="text/css">
+  @import "jquery.timeentry.css";
+    body {
+      padding: 10px; }
+    th {
+      text-align: right;
+      padding: 4px;
+      padding-right: 15px;
+      vertical-align: top; }
+    .css_sized_container .iPhoneCheckContainer {
+      width: 250px; height: 100px;}
+  </style>
+
+  <script type="text/javascript" charset="utf-8">
+    $(window).load(function() {
+      $('.cisterna :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Sí', uncheckedLabel: 'No' });
+      $('.operacion :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Automático', uncheckedLabel: 'Manual' });
+      $('.riego :checkbox').iphoneStyle({onChange:function(elem,value){$('#configForm').submit();}, checkedLabel: 'Aspersión', uncheckedLabel: 'Goteo' });
+
+      var onchange_operacion = ($('.operacion :checkbox')).iphoneStyle({
+        onChange: function(elem, value) {
+          alert('Cisterna');
+        }
+      });      
+    });
+  </script>
+  <script type="text/javascript">
+                    $(function () {
+                    	$('#hourini').timeEntry();
+                        });
+                    $(function () {
+                    	$('#hourend').timeEntry();
+                        });
+                    $(function () {
+                    	$('#sample_input').timeEntry();
+                        });
+                    $(".integer").numeric(false, function() { alert("Integers only"); this.value = ""; this.focus(); });
+                    $(".numeric").numeric();
+        </script>
+        <script type="text/javascript">
+        	function S4() {
+        	   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        	}
+        	function guid() {
+        	   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+        	}
+        	
+            $(document).ready(function(){
+                    $("#add_new").click(function(){
+                        $("#entry-form").fadeIn("fast");
+                    });
+                    $("#close").click(function(){
+                        $("#entry-form").fadeOut("fast");
+                    });
+                    $("#save").click(function(){
+                        ajax("save")
+                        });
+                    $(".del").live("click",function(){
+                        ajax("delete",$(this).attr("id"));
+                    });
+                    
+                    setInterval(function(){
+                    	$("#temp").load("/cur_temp");	
+                    }, 10000);
+                    
+                
+                    //Ajax
+                    function ajax(action, id){
+                    	if(action =="save")
+                            data = $("#schedule_info").serialize()+"&action="+action+"&uuid="+guid();
+                        else if(action == "delete"){
+                            data = "action="+action+"&uuid="+id;
+                        }
+                    	
+                     $.ajax({ //Carga los datos al servidor y actualiza la tabla
+                         type: "POST",
+                         url: "saveschedule",
+                         data: data,
+                         dataType: "json",
+                         success: function(response){
+                             if(response.success == 1){
+                                 if(action=="save"){
+                                     $("#entry-form").fadeOut("fast",function(){
+                                         $("#schedule_table").append("<tr><td>"+response.dia+"</td><td>"+response.hourini+"</td><td>"+response.hourend+"</td><td>"+response.action+"</td><td><a href='#' id="+response.uuid+" class='del'>Eliminar</a></td></tr>");
+                                         $("#schedule_table tr:last").effect("highlight", {
+                                             color: '#4BADF5'
+                                         }, 1000);
+                                     });// function fadeOut
+                                 }else if(action == "delete"){
+                                     var row_id = response.uuid;
+                                     $("a[id='"+row_id+"']").closest("tr").effect("highlight", {
+                                         color: '#4BADF5'
+                                     }, 1000);
+                                     $("a[id='"+row_id+"']").closest("tr").fadeOut();
+                                 }
+             					 location.reload();
+             					 
+                             }; //if response success
+                         },//function(response)
+                         error: function(res){
+                        	 alert("Error al guardar ");
+                         }
+                        	 
+                     });//.ajax
+                    }//-Ajax
+                    
+                    //Horarios
+                    $("#asp_temp").live("click",function(){
+                    	$("#temp_frm_div").fadeIn("fast");
+                    	$("#temp_riego_id").val("asp_temp");
+                    });
+                    
+                    $("#got_temp").live("click",function(){
+                    	$("#temp_frm_div").fadeIn("fast");
+                    	$("#temp_riego_id").val("got_temp");
+                    });
+                    
+                    $("#close_temp").click(function(){
+                        $("#temp_frm_div").fadeOut("fast");
+                    });
+                    $("#save_temp").click(function(){
+                        save_temp();
+                    });
+                    
+                    
+                  //Ajax
+                    function save_temp(){
+                    	data = $("#temp_form").serialize();
+                        //alert(data);
+                    	
+                     $.ajax({ //Carga los datos al servidor y actualiza la tabla
+                         type: "POST",
+                         url: "savetemp",
+                         data: data,
+                         dataType: "json",
+                         success: function(response){
+                        	 //alert(response.temp_riego_id);
+                        	 var p = "";
+                        	 if(response.temp_riego_id == 'asp_temp'){
+                        		 p = "asp";
+                        	 }else if(response.temp_riego_id == 'got_temp'){
+                        		 p = "got";
+                        	 }
+                             if(response.success == 1){
+                            	 mins = "td#" + p + "_min";
+                            	 maxs = "td#" + p + "_max";
+                            	 itvs = "td#" + p + "_itv";
+                            	 $(mins).html(response.temp_riego_min);
+                            	 $(maxs).html(response.temp_riego_max);
+                            	 $(itvs).html(response.temp_riego_itv);
+                            	 
+                            	 $("#temp_frm_div").fadeOut("fast");
+                             }; //if response success
+                         },//function(response)
+                         error: function(res){
+                        	 alert("Error al guardar ");
+                         }
+                        	 
+                     });//.ajax
+                     
+                    }//-save_temp
+            });//function
+        </script>
+
+</head>
+<body>
+
+<!-- {{file}}  -->
+<!-- 
+{{schedule}}<br />
+{{weekdays}}<br />
+{{temper}}<br />
+ -->
+<div id="header">
+	<div class="col w5 last right bottomlast">
+           <p class="last">Temperatura actual:&nbsp;<span class="strong" id="temp">actualizando ...</span>° C</p>
+    </div>
+    <div class="clear"></div>
+    <!-- <div>{{schedule}}</div>  -->
+     </div>
+<div id="wrapper">
+			<div id="minwidth">
+				<div id="holder">
+					<div id="menu">
+						<div id="left"></div>
+						<div id="right"></div>
+						<ul>
+							<li>
+								<a href="config.html"><span>Configuración</span></a>
+							</li>
+							<li>
+								<a href="prog" class="selected"><span>Programación</span></a>
+							</li>
+							<li>
+								<a href="logs.html"><span>Registro</span></a>
+							</li>
+						</ul>
+						<div class="clear"></div>
+					</div>
+					<div id="submenu">
+						
+						<div class="title">
+							Programación
+						</div>
+						<div class="modules_right">
+						</div>
+					</div>
+					<div id="desc">
+						<div class="body">
+							<div id="messages"></div>
+							<div class="clear"></div>
+							<div id="html" class="help">
+							<h1>Temperatura</h1>
+							<table id="temp_table">
+								<tr>
+									<th>Riego</th>
+									<th>Temp. Mínima<br/>°C</th>
+									<th>Temp. Máxima<br/>°C</th>
+									<th>Intervalo<br/>min.</th>
+									<th>Modificar</th>
+								</tr>
+								<tr>
+									<td>Aspersión</td>
+									<td id="asp_min">{{temper.aspersion.tmin}}</td>
+									<td id="asp_max">{{temper.aspersion.tmax}}</td>
+									<td id="asp_itv">{{temper.aspersion.inte}}</td>
+									<td><a href='#' id="asp_temp" class='mod'>Modificar</a></td>
+								</tr>
+								<tr>
+									<td>Goteo</td>
+									<td id="got_min">{{temper.goteo.tmin}}</td>
+									<td id="got_max">{{temper.goteo.tmax}}</td>
+									<td id="got_itv">{{temper.goteo.tmin}}</td>
+									<td><a href='#' id="got_temp" class='mod'>Modificar</a></td>
+								</tr>
+							</table>
+							<br/>
+							<h1>Horario</h1>
+   							<div class="col w2">
+   								<div class="content">
+   								<p><input value="Agregar" id="add_new" type="button" /><br></p>
+   									
+   								</div>
+   							</div>
+							
+							<!--  Tabla de resultados -->
+            				<div id="schedule_list" class="help">
+							<div class="col w10 last">
+								<div class="content">
+									<table id="schedule_table">
+										<tr>
+											<th>Día</th>
+											<th>Hora Inicio</th>
+											<th>Hora Fin</th>
+											<th>Riego</th>
+											<th>Eliminar</th>
+										</tr>
+										
+										{% for sc in schedule %}
+											<tr>
+												<td>{{sc.dia}}</td>
+												<td>{{sc.horaInicio}}</td>
+												<td>{{sc.horaFin}}</td>
+												<td>{{sc.riego|safe}}</td>
+												<td><a href='#' id="{{sc.id}}" class='del'>Eliminar</a></td>
+											</tr>
+										{% endfor %}
+										
+									</table>
+								</div>							
+							</div>
+							<div class="clear"></div>
+							</div>
+							
+            				<div id="entry-form" class="entry-form">
+								<form id="schedule_info" action="add_new" method="post">
+								    <p>
+								        <label>Riego</label>
+								        <select id="riego" name="riego">
+								        	{% for i in irrigation %}
+								            	<option id="irr{{ loop.index - 1 }}" value="{{ loop.index - 1 }}">{{ i }}</option>
+								            {% endfor %}
+								        </select>
+								        <br/>
+				                    </p>
+								    <p>
+								        <label>Día</label>
+								        <select id="dia" name="dia">
+								            {% for day in weekdays %}
+								            	<option id="dow{{ loop.index - 1 }}" value="{{ loop.index - 1 }}">{{ day }}</option>
+								            {% endfor %}
+								        </select>
+								        <br/>
+				                     </p>
+				                                        <p>
+				                                            <label>Iniciar a las</label>
+				                                            <input type="text" id="hourini" name="hourini" value="" class="text w_20" />
+                                                                                <br/>
+                                                                            </p>
+                                                                            <p>
+				                                            <label>Terminar a las</label>
+				                                            <input type="text" id="hourend" name="hourend" value="" class="text w_20" />
+                                                                                <br/>
+                                                                            </p>
+                                                                            <p>
+                                                                                <input type="button" value="Guardar" id="save" />
+                                                                                &nbsp;
+                                                                                <input type="button" value="Cerrar" id="close" />
+                                                                                <br/>
+                                                                            </p>
+								</form>
+							</div> <!-- Fin del formulario de entrada -->
+							
+							<!-- Formulario Temperatura -->
+							<div id="temp_frm_div" class="entry-form">
+								<form id="temp_form" action="upd_temp" method="post">
+									<input type="hidden" id="temp_riego_id" name="temp_riego_id" />
+									<p>
+										<label>Temperatura máxima</label>
+										<input type="text" class="text w_20" id="temp_riego_max" name="temp_riego_max" />
+										<br />
+									</p>
+									<p>
+										<label>Temperatura mínima</label>
+										<input type="text" class="text w_20" id="temp_riego_min" name="temp_riego_min" />
+										<br />
+									</p>
+									<p>
+										<label>Intervalo</label>
+										<input type="text" class="text w_20" id="temp_riego_itv" name="temp_riego_itv" />
+										<br />
+									</p>
+									<p>
+										<input type="button" value="Guardar" id="save_temp" /> &nbsp; 
+										<input type="button" value="Cerrar" id="close_temp" /> <br />
+									</p>
+								</form>
+							</div>
+							</div>
+							<div class="clear"></div>
+						</div>
+						<div class="clear"></div>
+						<div id="body_footer">
+							<div id="bottom_left"><div id="bottom_right"></div></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+</body>
+</html>

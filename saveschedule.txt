@@ -1,0 +1,7 @@
+
+            <html>
+            <body>
+            ImmutableMultiDict([('action', u'delete'), ('uuid', u'c01e695f-1027-46cf-95de-224a20d7ce36')])
+            </body>
+            </html>
+    

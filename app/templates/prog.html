@@ -77,12 +77,33 @@
                     $(".del").live("click",function(){
                         ajax("delete",$(this).attr("id"));
                     });
-                    
                     setInterval(function(){
                     	$("#temp").load("/cur_temp");	
                     }, 10000);
-                    
+                    $("#min_temp_log").keyup(function(){
+                    	save_mintemplog()
+                    });    
                 
+                    
+                    function save_mintemplog(){	
+                     data = $("#temp_min").serialize();
+                     $.ajax({ //Guarda el valor de la temperatura en el servidor
+                         type: "POST",
+                         url: "savelogmintemp",
+                         data: data,
+                         dataType: "json",
+                         success: function(response){
+                             if(response.success == 1){
+                             }; //if response success
+                         },//function(response)
+                         error: function(res){
+                        	 alert(response);
+                        	 alert("Error al guardar ");
+                         }
+                        	 
+                     });//.ajax
+                    }//save_mintemplog
+                    
                     //Ajax
                     function ajax(action, id){
                     	if(action =="save")
@@ -90,6 +111,9 @@
                         else if(action == "delete"){
                             data = "action="+action+"&uuid="+id;
                         }
+                    
+                    	
+                    	
                     	
                      $.ajax({ //Carga los datos al servidor y actualiza la tabla
                          type: "POST",
@@ -357,6 +381,14 @@
 							</div>
 							</div>
 							<div class="clear"></div>
+							<div style="margin:10px;">
+								<h1>Temperatura mínima para registro</h1>
+								<div>
+									<form id="temp_min" action="savelogmintemp" method="post">
+										<input type="text" id="min_temp_log" name="min_temp_log" class="text w_20" value="{{file.temp_min}}" />ºC
+									</form>
+								</div>
+							</div>
 						</div>
 						<div class="clear"></div>
 						<div id="body_footer">

@@ -1,4 +1,7 @@
 <config>
+    <log>
+    	<temperaturaMinima>12</temperaturaMinima>
+    </log>
     <operacion>manual</operacion>
     <operacionManual>
         <dispositivos>

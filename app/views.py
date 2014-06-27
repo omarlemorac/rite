@@ -2,8 +2,7 @@
 #!usr/bin/python 
 #!home/debian/.python-eggs/Adafruit_BBIO-0.0.19-py2.7-linux-armv7l.egg-tmp/Adafruit_BBIO
  
-import Adafruit_BBIO.ADC as ADC
-import Adafruit_BBIO.GPIO as GPIO 
+#import Adafruit_BBIO.GPIO as GPIO 
 from app import app
 from flask import render_template, send_from_directory, request, redirect, url_for
 import os
@@ -28,14 +27,15 @@ def read_temp():
     """
     Obtiene la temperatura desde el dispositivo
     """
-    t = 1000
-    try: 
+    
+    try:
+        import Adafruit_BBIO.ADC as ADC  # @UnresolvedImport
         ADC.setup()
-        t = int((ADC.read('P9_40')*1800)/10)
+        return int((ADC.read('P9_40')*1800)/10)
+        
     except:
-        pass 
-    return t 
-
+        return 1000
+    
 def base_path():
     return os.path.dirname(__file__)
 
@@ -79,6 +79,9 @@ def read_params():
     opAutoEl = root.find('operacionAutomatica')
     modoEl = opAutoEl.find('modo')
     params['opAuto'].setdefault('modo', modoEl.text) 
+    logEl = root.find("log")
+    temperaturaMinimaEl = logEl.find("temperaturaMinima")
+    params.setdefault("temp_min", temperaturaMinimaEl.text)
     return params
 
 
@@ -130,14 +133,14 @@ def saveconfig():
     else:
         dispositivosEl.find('goteo').text = 'off'
         
-    tree.write(os.path.join(base_path(), os.pardir, 'config.xml'))
+    tree.write(os.path.join(base_path(), os.pardir, _config_file))
     return redirect(url_for('index'))
 
 @app.route('/savetemp', methods=['POST', 'GET'])
 def savetemp():
     import xml.etree.ElementTree as ET
     import json
-    tree = ET.parse(os.path.join(base_path(), os.pardir, 'config.xml'))
+    tree = ET.parse(os.path.join(base_path(), os.pardir, _config_file))
     root = tree.getroot()
     opAutoEl = root.find('operacionAutomatica')
     opRiego = opAutoEl.find('temperatura').find('riego')
@@ -151,14 +154,31 @@ def savetemp():
     tempEl.attrib['minima'] = request.form['temp_riego_min']
     tempEl.attrib['intervalo'] = request.form['temp_riego_itv']
     
-    tree.write(os.path.join(base_path(), os.pardir, 'config.xml'))  
+    tree.write(os.path.join(base_path(), os.pardir, _config_file))  
     return json.dumps({'success':1,
                        'temp_riego_id':request.form['temp_riego_id'],
                        'temp_riego_max':request.form['temp_riego_max'],
                        'temp_riego_min':request.form['temp_riego_min'],
                        'temp_riego_itv':request.form['temp_riego_itv']
                        })
+
     
+@app.route('/savelogmintemp', methods=['POST', 'GET'])
+def savelogmintemp():
+    """
+    Guarda la temperatura minima para registro
+    TODO: Validacion de numeros enteros
+    """
+    import xml.etree.ElementTree as ET
+    import json
+    tree = ET.parse(os.path.join(base_path(), os.pardir, _config_file))
+    root = tree.getroot()
+    logsEl = root.find('log')
+    
+    tempMinEl = logsEl.find("temperaturaMinima")
+    tempMinEl.text = request.form['min_temp_log']
+    tree.write(os.path.join(base_path(), os.pardir, _config_file))
+    return json.dumps({'success':1})
 
 def add_schedule(s_dct, tree):
     root = tree.getroot() 
@@ -276,9 +296,11 @@ def prog():
 @app.route('/logs')
 @app.route('/logs.html')
 def logs():
-    import config as CN
-    import os
-    return render_template("logs.html", title='Logs', files=os.listdir(CN.log_dir))
+    #Guarda siempre en la carpeta static/logs
+    app_dir = os.path.join(os.path.dirname(__file__), '..', 'app')
+    static_dir = os.path.join(app_dir, 'static')
+    log_dir = os.path.join(static_dir, 'logs') 
+    return render_template("logs.html", title='Logs', files=os.listdir(log_dir))
 
 
 @app.route('/static/<path:filename>')
